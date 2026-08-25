@@ -1,0 +1,16 @@
+
+# Note: create zramfs
+# MOUNT_POINT="/tmp/zramfs"; SIZE="24G"; ZRAM_DEV=$(sudo zramctl --find --size "${SIZE}") && sudo mkfs.ext4 -O ^has_journal "${ZRAM_DEV}" && sudo mkdir -p "${MOUNT_POINT}" && sudo mount -o noatime,discard "${ZRAM_DEV}" "${MOUNT_POINT}" && sudo chown -R $USER:$USER "${MOUNT_POINT}" && echo "mounted ${ZRAM_DEV} (${SIZE}) to ${MOUNT_POINT}"
+
+# or ~80% memory
+MOUNT_POINT="/tmp/zramfs"; SIZE="$(($(grep MemTotal /proc/meminfo|awk '{print $2}')/1250000))G"; ZRAM_DEV=$(sudo zramctl --find --size "${SIZE}") && sudo mkfs.ext4 -O ^has_journal "${ZRAM_DEV}" && sudo mkdir -p "${MOUNT_POINT}" && sudo mount -o noatime,discard "${ZRAM_DEV}" "${MOUNT_POINT}" && sudo chown -R $USER:$USER "${MOUNT_POINT}" && echo "mounted ${ZRAM_DEV} (${SIZE}) to ${MOUNT_POINT}"
+
+# unmount
+MOUNT_POINT="/tmp/zramfs"; ZRAM_DEV=$(findmnt -n -o SOURCE "${MOUNT_POINT}") && sudo umount "${MOUNT_POINT}" && sudo zramctl --reset "${ZRAM_DEV}" && echo "reset done: ${ZRAM_DEV}"
+
+# tested on ArchLinux
+# see memory usage of zram: zramctl
+
+# features: zram, default algorithm zlib
+# discard, trim (free) memory after deletion
+# no journal ext4
