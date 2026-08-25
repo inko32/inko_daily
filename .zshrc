@@ -1,11 +1,11 @@
 if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
   export ZSH_CUSTOM_PLUGIN_DIR="${HOME}/.local/share/${USER}_zsh/plugins"
-  # 交互式终端的配置
+  # interactive terminal configuration
   fastfetch -l none -s os:kernel:memory:uptime:battery:locale
 
   init_interactive_zsh() {
-    bindkey "\e[1;5C" forward-word      # Ctrl + 右
-    bindkey "\e[1;5D" backward-word     # Ctrl + 左
+    bindkey "\e[1;5C" forward-word      # Ctrl + R
+    bindkey "\e[1;5D" backward-word     # Ctrl + L
     alias sudo='sudo '
 
     if command -v eza &>/dev/null; then
@@ -128,7 +128,7 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
     [[ -f "$syntax_highlight_file" ]] && source "$syntax_highlight_file" || failed=1
 
     ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'  # 预测文字颜色-暗灰色
+    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'  # text colour of suggestion - dark grey
 
     if [[ $failed -eq 1 ]]; then
       print -P "%F{yellow}[WARN] zsh plugins missing, run: %F{cyan}fix_zsh_plugin%f%f"
