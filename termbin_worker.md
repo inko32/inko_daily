@@ -31,6 +31,8 @@ A lightweight, self-hosted `termbin`-like paste service powered by Cloudflare Wo
 2. Replace the default code with the script below (you can change `/mypaste` to any path you like):
 
 ```javascript
+
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -46,16 +48,32 @@ export default {
 
     // You can change "/mypaste" to any custom path you prefer
     if (request.method === "POST" && url.pathname === "/mypaste") {
-      const newId = Math.random().toString(36).substring(2, 8); 
       const body = await request.text();
       
       if (!body) {
         return new Response("Empty body", { status: 400 });
       }
 
+      let newId;
+      let exists = true;
+      let attempts = 0;
+
+      while (exists && attempts < 5) {
+        newId = Math.random().toString(36).substring(2, 8);
+        const existingData = await env.MY_KV.get(newId);
+        if (!existingData) {
+          exists = false;
+        }
+        attempts++;
+      }
+
+      if (exists) {
+        return new Response("Conflict, please try again", { status: 500 });
+      }
+
       await env.MY_KV.put(newId, body, { expirationTtl: 604800 });
 
-      return new Response(`https://${url.host}/${newId}\\n`, {
+      return new Response(`https://${url.host}/${newId}\n`, {
         headers: { "Content-Type": "text/plain; charset=utf-8" },
       });
     }
