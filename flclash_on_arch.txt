@@ -1,0 +1,27 @@
+ufw allow in on FlClash
+
+
+---
+
+How I found this:
+
+No Internet access after setting up FlClash
+Maybe problem of firewall
+Search which firewall does Archlinux use
+
+> sudo systemctl stop ufw
+
+ok it's problem of ufw.
+
+> ip a
+
+3: FlClash: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UNKNOWN group default qlen 500
+    link/none 
+    inet 198.18.0.1/30 brd 198.18.0.3 scope global FlClash
+       valid_lft forever preferred_lft forever
+    inet6 fe80::fc4e:9d5:37d0:f85f/64 scope link stable-privacy proto kernel_ll 
+       valid_lft forever preferred_lft forever
+
+Ask AI how to allow this.
+
+Done
