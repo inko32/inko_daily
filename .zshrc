@@ -21,10 +21,24 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
       p_status=$([[ "$s" == *discharging* ]] && echo "Discharging" || echo "AC Connected")
       bat_str="${cap}%%[$p_status]"
     fi
-    print -P "%F{blue}${os_kernel}%f | Memory: %F{green}${mem_info}%f | Uptime: %F{yellow}${up_time}%f"
-    print -P "%F{magenta}${zsh_ver}%f | Locale: %F{white}${LANG:-en_US.UTF-8}%f | Battery: %F{cyan}${bat_str}%f"
+    # print -P "%F{blue}${os_kernel}%f | Memory: %F{green}${mem_info}%f | Uptime: %F{yellow}${up_time}%f"
+    # print -P "%F{magenta}${zsh_ver}%f | Locale: %F{white}${LANG:-en_US.UTF-8}%f | Battery: %F{cyan}${bat_str}%f"
+    print -P "${os_kernel} | Memory: ${mem_info} | Uptime: ${up_time}"
+    print -P "${zsh_ver} | Locale: ${LANG:-en_US.UTF-8} | Battery: ${bat_str}"
   }
-  sysinfo
+  __minilolcat() { # default amplitude is 127(full), brightness = 128
+    { (( $# > 0 )) && echo "$@" || cat } | awk '
+    BEGIN { pi = 3.14; freq = 0.12; amplitude = 60; base_brightness = 190} {
+        for (i = 1; i <= length($0); i++) {
+            r = int(sin(freq * (NR + i) + 0) * amplitude + base_brightness);
+            g = int(sin(freq * (NR + i) + 2 * pi / 3) * amplitude + base_brightness);
+            b = int(sin(freq * (NR + i) + 4 * pi / 3) * amplitude + base_brightness);
+            printf "\033[38;2;%d;%d;%dm%s\033[0m", r, g, b, substr($0, i, 1);
+        }
+        printf "\n";
+    }'
+  }
+  sysinfo | __minilolcat
 
   init_interactive_zsh() {
     bindkey "\e[1;5C" forward-word      # Ctrl + Right
