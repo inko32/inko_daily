@@ -105,7 +105,7 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
     alias cleanch="sudo pacman -Scc"
     alias fixpacman="sudo rm /var/lib/pacman/db.lck"
     alias update="sudo pacman -Syu"
-    alias cleanup="sudo pacman -Rns $(pacman -Qtdq)" # Cleanup orphaned packages
+    alias cleanup="sudo pacman -Rns \$(pacman -Qtdq)" # Cleanup orphaned packages
     alias jctl="journalctl -p 3 -xb" # Get the error messages from journalctl
     # Recent installed packages
     alias rip="expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
@@ -147,10 +147,23 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
     ref_has_pacman=false
 
     command -v pacman &>/dev/null && ref_has_pacman=true
-    command -v atuin &>/dev/null || ref_missing+=("atuin")
-    command -v starship &>/dev/null || ref_missing+=("starship")
-    command -v zoxide &>/dev/null || ref_missing+=("zoxide")
-    command -v bat &>/dev/null || ref_missing+=("bat")
+
+    typeset -A deps
+    deps=(
+      git       "git"
+      atuin     "atuin"
+      starship  "starship"
+      zoxide    "zoxide"
+      bat       "bat"
+      nc        "openbsd-netcat"
+      eza       "eza"
+    )
+
+    for cmd in ${(k)deps}; do
+        if ! command -v "$cmd" &>/dev/null; then
+            ref_missing+=("${deps[$cmd]}")
+        fi
+    done
 
     if [[ ${#ref_missing[@]} -gt 0 ]]; then
       print -P "%F{yellow}[WARN] Missing terminal efficiency tools detected: ${ref_missing[*]}%f"
@@ -218,6 +231,10 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
 
 fi
 
+# the cachyos default config is not needed
+# source /usr/share/cachyos-zsh-config/cachyos-config.zsh
+
+
 zramfs() {
   local mount_point="/tmp/zramfs"
   case "$1" in
@@ -247,4 +264,3 @@ zramfs() {
   # unmount
   # MOUNT_POINT="/tmp/zramfs"; ZRAM_DEV=$(findmnt -n -o SOURCE "${MOUNT_POINT}") && sudo umount "${MOUNT_POINT}" && sudo zramctl --reset "${ZRAM_DEV}" && echo "reset done: ${ZRAM_DEV}"
 }
-
