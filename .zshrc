@@ -26,6 +26,7 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
     print -P "${os_kernel} | Memory: ${mem_info} | Uptime: ${up_time}"
     print -P "${zsh_ver} | Locale: ${LANG:-en_US.UTF-8} | Battery: ${bat_str}"
   }
+
   __minilolcat() { # default amplitude is 127(full), brightness = 128
     { (( $# > 0 )) && echo "$@" || cat } | awk '
     BEGIN { pi = 3.14; freq = 0.12; amplitude = 60; base_brightness = 190} {
@@ -38,7 +39,6 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
         printf "\n";
     }'
   }
-  sysinfo | __minilolcat
 
   init_interactive_zsh() {
     bindkey "\e[1;5C" forward-word      # Ctrl + Right
@@ -76,7 +76,7 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
     alias ninja="ninja -j`nproc`"
     alias n="ninja"
 
-    alias tb="nc termbin.com 9999" # cat << 'EOF' | tb
+    [[ -z "${aliases[tb]}" ]] && alias tb="nc termbin.com 9999" # cat << 'EOF' | tb
     alias c="clear"
 
     # cachyos fish useful
@@ -105,7 +105,7 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
     alias cleanch="sudo pacman -Scc"
     alias fixpacman="sudo rm /var/lib/pacman/db.lck"
     alias update="sudo pacman -Syu"
-    alias cleanup="sudo pacman -Rsn $(pacman -Qtdq)" # Cleanup orphaned packages
+    alias cleanup="sudo pacman -Rns $(pacman -Qtdq)" # Cleanup orphaned packages
     alias jctl="journalctl -p 3 -xb" # Get the error messages from journalctl
     # Recent installed packages
     alias rip="expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
@@ -122,6 +122,8 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
     (( $+commands[atuin] )) && source <(atuin init zsh --disable-up-arrow)
     (( $+commands[starship] )) && source <(starship init zsh)
     (( $+commands[zoxide] )) && source <(zoxide init zsh)
+
+
     autoload -U compinit && compinit -d "${ZSH_CUSTOM_PLUGIN_DIR}/.zcompdump"
     atuin config set inline_height_shell_up_key_binding 6
 
@@ -176,7 +178,7 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
     [[ -f "$syntax_highlight_file" ]] && source "$syntax_highlight_file" || failed=1
 
     ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'  # 预测文字颜色-暗灰色
+    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'  # Dark Gray
 
     if [[ $failed -eq 1 ]]; then
       print -P "%F{yellow}[WARN] zsh plugins missing, run: %F{cyan}fix_zsh_plugin%f%f"
@@ -196,10 +198,11 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
       "
     fi
   }
+  sysinfo | __minilolcat
   check_deps
   load_zsh_plugins
-  init_interactive_zsh
   init_inputrc
+  init_interactive_zsh
 
   # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
   # Initialization code that may require console input (password prompts, [y/n]
@@ -211,4 +214,37 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
   # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
   # [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
+  # not using p10k, use starship instead.
+
 fi
+
+zramfs() {
+  local mount_point="/tmp/zramfs"
+  case "$1" in
+    mount)
+      local size="24G"
+      local zram_dev
+      zram_dev=$(sudo zramctl --find --size "${size}") && \
+      sudo mkfs.ext4 -O ^has_journal "${zram_dev}" && \
+      sudo mkdir -p "${mount_point}" && \
+      sudo mount -o noatime,discard "${zram_dev}" "${mount_point}" && \
+      sudo chown -R $USER:$USER "${mount_point}" && \
+      echo "mounted ${zram_dev} (${size}) to ${mount_point}"
+      ;;
+    unmount)
+      local zram_dev
+      zram_dev=$(findmnt -n -o SOURCE "${mount_point}") && \
+      sudo umount "${mount_point}" && \
+      sudo zramctl --reset "${zram_dev}" && \
+      echo "reset done: ${zram_dev}"
+      ;;
+    *)
+      echo "Usage: zramfs {mount|unmount}"
+      ;;
+  esac
+  # Note: mount a zramfs
+  # SIZE="24G"; MOUNT_POINT="/tmp/zramfs"; ZRAM_DEV=$(sudo zramctl --find --size "${SIZE}") && sudo mkfs.ext4 -O ^has_journal "${ZRAM_DEV}" && sudo mkdir -p "${MOUNT_POINT}" && sudo mount -o noatime,discard "${ZRAM_DEV}" "${MOUNT_POINT}" && sudo chown -R $USER:$USER "${MOUNT_POINT}" && echo "mounted ${ZRAM_DEV} (${SIZE}) to ${MOUNT_POINT}"
+  # unmount
+  # MOUNT_POINT="/tmp/zramfs"; ZRAM_DEV=$(findmnt -n -o SOURCE "${MOUNT_POINT}") && sudo umount "${MOUNT_POINT}" && sudo zramctl --reset "${ZRAM_DEV}" && echo "reset done: ${ZRAM_DEV}"
+}
+
