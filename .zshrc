@@ -1,11 +1,44 @@
 if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
   export ZSH_CUSTOM_PLUGIN_DIR="${HOME}/.local/share/${USER}_zsh/plugins"
-  # interactive terminal configuration
-  fastfetch -l none -s os:kernel:memory:uptime:battery:locale
+  # fastfetch -l none -s os:kernel:memory:uptime:battery:locale
+
+  sysinfo() {
+    local os_kernel="$(uname -s) $(uname -r) $(uname -m)"
+    local mem_info=$(free -m | awk 'NR==2{printf "%.1fG/%.0fG (%d%%%)", $3/1024, $2/1024, ($3/$2)*100}')
+    local up_time=$(uptime -p | sed 's/up //; s/ hours\?/h/g; s/ minutes\?/m/g; s/ days\?/d/g; s/,//g')
+    local zsh_ver="zsh ${ZSH_VERSION}"
+
+    local bat_dir=""
+    for d in /sys/class/power_supply/BAT*; do
+      [[ -d "$d" ]] && bat_dir="$d" && break
+    done
+
+    local bat_str="N/A"
+    if [[ -n "$bat_dir" ]]; then
+      local cap=$(< "$bat_dir/capacity")
+      local p_status="$(< "$bat_dir/status")"
+      local s="${p_status:l}"
+      p_status=$([[ "$s" == *discharging* ]] && echo "Discharging" || echo "AC Connected")
+      bat_str="${cap}%%[$p_status]"
+    fi
+    print -P "%F{blue}${os_kernel}%f | Memory: %F{green}${mem_info}%f | Uptime: %F{yellow}${up_time}%f"
+    print -P "%F{magenta}${zsh_ver}%f | Locale: %F{white}${LANG:-en_US.UTF-8}%f | Battery: %F{cyan}${bat_str}%f"
+  }
+  sysinfo
 
   init_interactive_zsh() {
-    bindkey "\e[1;5C" forward-word      # Ctrl + R
-    bindkey "\e[1;5D" backward-word     # Ctrl + L
+    bindkey "\e[1;5C" forward-word      # Ctrl + Right
+    bindkey "\e[1;5D" backward-word     # Ctrl + Left
+    bindkey '^H' backward-kill-word
+    # bindkey '^W' backward-kill-word # builtin, not useful
+    # bindkey '^U' backward-kill-line # builtin
+    # bindkey '^K' kill-line # builtin
+    # bindkey '^A' beginning-of-line # builtin
+    # bindkey '^E' end-of-line # builtin
+
+    # bindkey '^[[A' history-search-backward
+    # bindkey '^[OA' history-search-backward
+
     alias sudo='sudo '
 
     if command -v eza &>/dev/null; then
@@ -76,6 +109,10 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
     (( $+commands[starship] )) && source <(starship init zsh)
     (( $+commands[zoxide] )) && source <(zoxide init zsh)
     autoload -U compinit && compinit -d "${ZSH_CUSTOM_PLUGIN_DIR}/.zcompdump"
+    atuin config set inline_height_shell_up_key_binding 6
+
+    autoload -U select-word-style
+    select-word-style bash
 
   }
 
@@ -115,9 +152,6 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
       fi
     fi
   }
-  check_deps
-  init_interactive_zsh
-  init_inputrc
 
   load_zsh_plugins() {
     typeset -r autosuggest_file="${ZSH_CUSTOM_PLUGIN_DIR}/zsh-autosuggestions/zsh-autosuggestions.zsh"
@@ -128,7 +162,7 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
     [[ -f "$syntax_highlight_file" ]] && source "$syntax_highlight_file" || failed=1
 
     ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'  # text colour of suggestion - dark grey
+    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'  # 预测文字颜色-暗灰色
 
     if [[ $failed -eq 1 ]]; then
       print -P "%F{yellow}[WARN] zsh plugins missing, run: %F{cyan}fix_zsh_plugin%f%f"
@@ -148,7 +182,10 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
       "
     fi
   }
+  check_deps
   load_zsh_plugins
+  init_interactive_zsh
+  init_inputrc
 
   # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
   # Initialization code that may require console input (password prompts, [y/n]
@@ -161,6 +198,3 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
   # [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 fi
-
-
-
