@@ -1,0 +1,39 @@
+I just see an awesome project:
+https://gitgud.io/aeroshell/atp/aerothemeplasma
+
+It looks amazing and I want to try it. But I am afraid that my linux will be contaminated.
+
+So:
+
+1. follow zramfs_playground_note to make a /tmp/zramfs
+2. sudo pacstrap /tmp/zramfs base linux linux-firmware base-devel systemd-sysvcompat
+# actually I don't think linux and linux-firmware is necessary but this is provided by gemini, I am too lazy to verify what it would be without them
+3. sudo arch-chroot /tmp/zramfs
+4. follow aerothemeplasma's guide
+5. Ctrl+Alt+F4, login as root
+6. 
+sudo mount --bind /dev /tmp/zramfs/dev
+sudo mount --bind /proc /tmp/zramfs/proc
+sudo mount --bind /sys /tmp/zramfs/sys
+sudo mount --bind /run /tmp/zramfs/run
+
+6. arch-chroot /tmp/zramfs
+7. dbus-run-session startplasma-wayland
+
+
+if x11,
+
+1. pacman -S xorg-server xorg-xinit
+2. echo "exec startplasma-x11" > ~/.xinitrc
+3. dbus-run-session startx -- :4 
+# :4 for tty4, if conflict, try another
+
+# maybe this is needed but I am not sure.
+usermod -aG video,input,render yourusername
+
+
+I run everything as root because I just want to prototype. 
+Usinga normal user brings a lot of permission problems.
+
+
+AI produced too much noise. This note is just for prototyping.
