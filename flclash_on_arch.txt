@@ -13,6 +13,10 @@ Search which firewall does Archlinux use
 
 ok it's problem of ufw.
 
+ask ai how to see ufw block history
+
+> sudo journalctl -k -f | grep -i "UFW BLOCK"
+
 > ip a
 
 3: FlClash: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 9000 qdisc fq_codel state UNKNOWN group default qlen 500
