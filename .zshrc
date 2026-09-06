@@ -40,7 +40,7 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
     }'
   }
 
-  init_interactive_zsh() {
+  aliases_init() {
     bindkey "\e[1;5C" forward-word      # Ctrl + Right
     bindkey "\e[1;5D" backward-word     # Ctrl + Left
     bindkey '^H' backward-kill-word
@@ -98,7 +98,6 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
     alias big="expac -H M '%m\t%n' | sort -h | nl"              # Sort installed packages according to size in MB
     alias gitpkg='pacman -Q | grep -i "\-git" | wc -l'          # List amount of -git packages
 
-
     # ArchLinux Exclusive
 
     alias rmpkg="sudo pacman -Rsn"
@@ -117,18 +116,6 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
     # man page
     export MANROFFOPT="-c"
     MANPAGER="sh -c 'col -bx | bat -l man -p'"
-
-    # sudo pacman -S starship zoxide atuin
-    (( $+commands[atuin] )) && source <(atuin init zsh --disable-up-arrow)
-    (( $+commands[starship] )) && source <(starship init zsh)
-    (( $+commands[zoxide] )) && source <(zoxide init zsh)
-
-
-    autoload -U compinit && compinit -d "${ZSH_CUSTOM_PLUGIN_DIR}/.zcompdump"
-    atuin config set inline_height_shell_up_key_binding 6
-
-    autoload -U select-word-style
-    select-word-style bash
 
   }
 
@@ -183,6 +170,19 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
   }
 
   load_zsh_plugins() {
+    # todo: pacapt for non-arch
+
+    # sudo pacman -S starship zoxide atuin
+    (( $+commands[atuin] )) && source <(atuin init zsh --disable-up-arrow)
+    (( $+commands[starship] )) && source <(starship init zsh)
+    (( $+commands[zoxide] )) && source <(zoxide init zsh)
+
+    autoload -U compinit && compinit -d "${ZSH_CUSTOM_PLUGIN_DIR}/.zcompdump"
+    atuin config set inline_height_shell_up_key_binding 6
+
+    autoload -U select-word-style
+    select-word-style bash
+
     typeset -r autosuggest_file="${ZSH_CUSTOM_PLUGIN_DIR}/zsh-autosuggestions/zsh-autosuggestions.zsh"
     typeset -r syntax_highlight_file="${ZSH_CUSTOM_PLUGIN_DIR}/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
@@ -211,11 +211,11 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
       "
     fi
   }
-  sysinfo | __minilolcat
   check_deps
-  load_zsh_plugins
   init_inputrc
-  init_interactive_zsh
+  load_zsh_plugins
+  sysinfo | __minilolcat
+  aliases_init
 
   # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
   # Initialization code that may require console input (password prompts, [y/n]
@@ -230,9 +230,6 @@ if [[ -n "${ZSH_VERSION:-}" && $- == *i* ]]; then
   # not using p10k, use starship instead.
 
 fi
-
-# the cachyos default config is not needed
-# source /usr/share/cachyos-zsh-config/cachyos-config.zsh
 
 
 zramfs() {
@@ -264,3 +261,18 @@ zramfs() {
   # unmount
   # MOUNT_POINT="/tmp/zramfs"; ZRAM_DEV=$(findmnt -n -o SOURCE "${MOUNT_POINT}") && sudo umount "${MOUNT_POINT}" && sudo zramctl --reset "${ZRAM_DEV}" && echo "reset done: ${ZRAM_DEV}"
 }
+
+
+
+# zsh
+# zsh-autosuggestions
+# zsh-completions
+# zsh-history-substring-search
+# zsh-syntax-highlighting
+# zsh-theme-powerlevel10k
+
+
+# sudo auth passwd & fprint
+# install from AUR: pam-fprint-grosshack
+# update /etc/pam.d/sudo and other confs, pam_fprintd.so -> pam_fprintd_grosshack.so
+# auth sufficient pam_fprintd_grosshack.so
