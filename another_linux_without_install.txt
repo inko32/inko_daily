@@ -6,16 +6,19 @@ It looks amazing and I want to try it. But I am afraid that my linux will be con
 So:
 
 1. follow zramfs_playground_note to make a /tmp/zramfs
-2. sudo pacstrap /tmp/zramfs base linux linux-firmware base-devel systemd-sysvcompat
+2. sudo pacstrap /tmp/zramfs base     \
+   // do not add\: linux linux-firmware base-devel systemd-sysvcompat
 # actually I don't think linux and linux-firmware is necessary but this is provided by gemini, I am too lazy to verify what it would be without them
-3. sudo arch-chroot /tmp/zramfs
-4. follow aerothemeplasma's guide
-5. Ctrl+Alt+F4, login as root
-6. 
+# tested. they are unneeded
+
+3. 
 sudo mount --bind /dev /tmp/zramfs/dev
 sudo mount --bind /proc /tmp/zramfs/proc
 sudo mount --bind /sys /tmp/zramfs/sys
 sudo mount --bind /run /tmp/zramfs/run
+4. sudo arch-chroot /tmp/zramfs
+5. follow aerothemeplasma's guide
+6. Ctrl+Alt+F4, login as root
 
 6. arch-chroot /tmp/zramfs
 7. dbus-run-session startplasma-wayland
@@ -37,3 +40,6 @@ Usinga normal user brings a lot of permission problems.
 
 
 AI produced too much noise. This note is just for prototyping.
+
+try:
+- base pacman nano labwc hyprland niri sddm networkmanager quickshell pipewire wireplumber foot
