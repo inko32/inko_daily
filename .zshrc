@@ -84,8 +84,8 @@ _inko_zshrc_main() {
       alias tarnow='tar -acf '
       alias untar='tar -zxvf '
       alias wget='wget -c '
-      alias psmem='ps auxf | sort -nr -k 4'
-      alias psmem10='ps auxf | sort -nr -k 4 | head -10'
+      alias psmem='ps auxf | sort -nr -k 4 '
+      alias psmem10='ps auxf | sort -nr -k 4 | head -10 '
       alias ..='cd ..'
       alias ...='cd ../..'
       alias ....='cd ../../..'
@@ -96,22 +96,22 @@ _inko_zshrc_main() {
       alias fgrep='fgrep --color=auto'
       alias egrep='egrep --color=auto'
       alias hw='hwinfo --short'                                   # Hardware Info
-      alias big="expac -H M '%m\t%n' | sort -h | nl"              # Sort installed packages according to size in MB
-      alias gitpkg='pacman -Q | grep -i "\-git" | wc -l'          # List amount of -git packages
 
-      # ArchLinux Exclusive
-
-      alias rmpkg="sudo pacman -Rsn"
-      alias cleanch="sudo pacman -Scc"
-      alias fixpacman="sudo rm /var/lib/pacman/db.lck"
-      alias update="sudo pacman -Syu"
-      alias cleanup="sudo pacman -Rns \$(pacman -Qtdq)" # Cleanup orphaned packages
       alias jctl="journalctl -p 3 -xb" # Get the error messages from journalctl
-      # Recent installed packages
-      alias rip="expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
 
-      if ! command -v pacman &>/dev/null; then
-        print -P "%F{red}[WARN] pacman is unavailable，arch-exclusive aliases like update, rmpkg will not work！%f"
+      if command -v pacman &>/dev/null; then
+        # ArchLinux Exclusive
+        alias rmpkg="sudo pacman -Rsn"
+        alias cleanch="sudo pacman -Scc"
+        alias fixpacman="sudo rm /var/lib/pacman/db.lck"
+        alias update="sudo pacman -Syu"
+        alias cleanup="sudo pacman -Rns \$(pacman -Qtdq)" # Cleanup orphaned packages
+        alias big="expac -H M '%m\t%n' | sort -h | nl"              # Sort installed packages according to size in MB
+        alias gitpkg='pacman -Q | grep -i "\-git" | wc -l'          # List amount of -git packages
+        # Recent installed packages
+        alias rip="expac --timefmt='%Y-%m-%d %T' '%l\t%n %v' | sort | tail -200 | nl"
+      else
+        print -P "%F{red}[WARN] pacman is unavailable, arch-exclusive aliases like update, rmpkg will not work! %f"
       fi
 
       # man page
@@ -195,12 +195,8 @@ _inko_zshrc_main() {
 
 
 check_deps() {
-  local missing_deps=()
-  local has_pacman=false
-
   ref_missing=()
   ref_has_pacman=false
-
   command -v pacman &>/dev/null && ref_has_pacman=true
 
   typeset -A deps
@@ -212,6 +208,7 @@ check_deps() {
     bat       "bat"
     nc        "openbsd-netcat"
     eza       "eza"
+    curl      "curl"
   )
 
   for cmd in ${(k)deps}; do
@@ -362,6 +359,12 @@ make DESTDIR=/tmp/zsh-package install
 
 zsh_static_builder
 
+: << 'suffering_time_shift_after_windows'
+timedatectl: -> RTC in local TZ: no # this is good.
+Windows cmd (Administrator):
+> reg add "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" ^
+/v RealTimeIsUniversal /t REG_DWORD /d 1 /f
+suffering_time_shift_after_windows
 
 
 _inko_zshrc_main
