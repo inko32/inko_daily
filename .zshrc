@@ -103,6 +103,7 @@ _inko_zshrc_main() {
         # ArchLinux Exclusive
         alias rmpkg="sudo pacman -Rsn"
         alias cleanch="sudo pacman -Scc"
+        alias rmcache="sudo paccache -rk 1" # pacman-contrib
         alias fixpacman="sudo rm /var/lib/pacman/db.lck"
         alias update="sudo pacman -Syu"
         alias cleanup="sudo pacman -Rns \$(pacman -Qtdq)" # Cleanup orphaned packages
@@ -209,6 +210,7 @@ check_deps() {
     nc        "openbsd-netcat"
     eza       "eza"
     curl      "curl"
+    paccache  "pacman-contrib"
   )
 
   for cmd in ${(k)deps}; do
