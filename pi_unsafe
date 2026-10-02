@@ -1,0 +1,89 @@
+#!/bin/sh
+# dependency: bun
+set -e
+
+# ==========================================
+# Configurable Variables
+# ==========================================
+PACKAGE_NAME="@earendil-works/pi-coding-agent"
+BINARY_NAME="pi"
+BASE_TMP_DIR="/tmp/zramfs_inkodaily/pi_runner"
+FORCE_CLEAN=false
+
+# ==========================================
+# Argument Parsing (POSIX Compliant)
+# ==========================================
+ORIG_COUNT=$#
+i=0
+
+while [ "$i" -lt "$ORIG_COUNT" ]; do
+  ARG="$1"
+  shift
+  i=$((i + 1))
+
+  case "$ARG" in
+    --fresh)
+      FORCE_CLEAN=true
+      ;;
+    --tmp=*)
+      BASE_TMP_DIR="${ARG#*=}"
+      ;;
+    --usage)
+      echo "Usage: $0 [--fresh] [--tmp=<dir>] [--usage] [additional ${BINARY_NAME} arguments...]"
+      exit 0
+      ;;
+    *)
+      set -- "$@" "$ARG"
+      ;;
+  esac
+done
+
+
+# Derived directories & paths
+NPM_PREFIX_DIR="${BASE_TMP_DIR}/npm_prefix"
+NPM_CACHE_DIR="${BASE_TMP_DIR}/npm_cache"
+INSTALL_LOG="${BASE_TMP_DIR}/install.log"
+NODE_BIN="${NPM_PREFIX_DIR}/node_modules/.bin"
+JS_BIN="${NODE_BIN}/${BINARY_NAME}"
+BUN_EXE="$(command -v bun || true)"
+ERR_MESSAGE="❌ Error"
+
+if [ ! -x "${BUN_EXE}" ]; then
+    echo "${ERR_MESSAGE}: 'bun' is not installed or not in PATH." >&2
+    exit 1
+fi
+
+# ==========================================
+# Setup & Installation
+# ==========================================
+if [ "$FORCE_CLEAN" = "true" ] && [ -d "$BASE_TMP_DIR" ]; then
+    rm -rf "$BASE_TMP_DIR"
+fi
+
+# Only print init message and perform installation if binary doesn't exist or --fresh was requested
+if [ ! -f "$JS_BIN" ]; then
+    echo "==> Initializing ${BINARY_NAME} runtime environment..."
+
+    mkdir -p "$NPM_PREFIX_DIR" "$NPM_CACHE_DIR"
+
+    if ! ${BUN_EXE} add "$PACKAGE_NAME" \
+        --cwd "$NPM_PREFIX_DIR" \
+        --cache-dir "$NPM_CACHE_DIR" \
+        --ignore-scripts \
+        --no-save > "$INSTALL_LOG" 2>&1; then
+
+        echo "${ERR_MESSAGE}: Installation failed! See ${INSTALL_LOG}" >&2
+        exit 1
+    fi
+fi
+
+if [ ! -f "$JS_BIN" ]; then
+    echo "${ERR_MESSAGE}: '${BINARY_NAME}' binary not found at ${JS_BIN}. See ${INSTALL_LOG}" >&2
+    exit 1
+fi
+
+# ==========================================
+# Launch
+# ==========================================
+ln -sf "${BUN_EXE}" "${NPM_PREFIX_DIR}/${BINARY_NAME}"
+PATH="$NODE_BIN:$PATH" exec "${NPM_PREFIX_DIR}/${BINARY_NAME}" "$JS_BIN" "$@"
