@@ -1,18 +1,14 @@
 #!/bin/sh
-# dependency: bun
+# Dependency: bun
 set -e
 
-# ==========================================
 # Configurable Variables
-# ==========================================
 PACKAGE_NAME="@earendil-works/pi-coding-agent"
 BINARY_NAME="pi"
 BASE_TMP_DIR="/tmp/zramfs_inkodaily/pi_runner"
 FORCE_CLEAN=false
 
-# ==========================================
 # Argument Parsing (POSIX Compliant)
-# ==========================================
 ORIG_COUNT=$#
 i=0
 
